@@ -1,0 +1,3 @@
+*.h5
+# Large HFT datasets
+HIGH_FREQUENCY_TRADING/TP/Data/*.h5

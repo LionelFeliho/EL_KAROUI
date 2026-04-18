@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guide Révision – Contrôle Stochastique & Arrêt Optimal</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #161b27;
+    --bg3: #1e2535;
+    --accent: #5b8af0;
+    --accent2: #38c9a0;
+    --accent3: #f0a050;
+    --accent4: #e05b7a;
+    --text: #e8eaf0;
+    --text2: #9aa3b8;
+    --text3: #5c6480;
+    --border: #2a3050;
+    --code-bg: #0a0d18;
+    --tag-bg: #1a2240;
+    --formula-bg: #0d1525;
+    --formula-border: #2a4080;
+    --warn-bg: #1a2010;
+    --warn-border: #3a6020;
+    --tip-bg: #0d1a30;
+    --tip-border: #1a4060;
+    --def-bg: #1a1030;
+    --def-border: #3a1060;
+    --thm-bg: #1a1020;
+    --thm-border: #5040a0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 16px;
+  }
+  /* Nav */
+  nav {
+    position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+    background: var(--bg2); border-right: 1px solid var(--border);
+    overflow-y: auto; padding: 1.5rem 1rem; z-index: 100;
+  }
+  nav h2 { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text3); margin-bottom: 1rem; font-family: 'Arial', sans-serif; }
+  nav a {
+    display: block; font-size: 13px; color: var(--text2); text-decoration: none;
+    padding: 4px 8px; border-radius: 5px; margin-bottom: 2px;
+    font-family: 'Arial', sans-serif; transition: all 0.15s;
+  }
+  nav a:hover { background: var(--bg3); color: var(--text); }
+  nav a.active { background: var(--accent); color: #fff; }
+  nav a.section { color: var(--accent); font-weight: bold; margin-top: 12px; font-size: 12px; }
+  nav .time-badge {
+    display: inline-block; background: var(--tag-bg); color: var(--accent);
+    font-size: 10px; padding: 1px 5px; border-radius: 3px; margin-left: 4px;
+  }
+  /* Main content */
+  main { margin-left: 260px; padding: 3rem 4rem; max-width: 900px; }
+  /* Header */
+  .hero {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 2.5rem 3rem; margin-bottom: 3rem; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -60px; right: -60px;
+    width: 220px; height: 220px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(91,138,240,0.15) 0%, transparent 70%);
+  }
+  .hero h1 { font-size: 2rem; color: #fff; margin-bottom: 0.5rem; }
+  .hero .subtitle { font-size: 1.1rem; color: var(--text2); font-family: 'Arial', sans-serif; }
+  .plan-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 1.5rem;
+  }
+  .plan-card {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; font-family: 'Arial', sans-serif;
+  }
+  .plan-card .num { font-size: 11px; color: var(--accent); font-weight: bold; }
+  .plan-card .title { font-size: 13px; color: var(--text); margin-top: 2px; }
+  .plan-card .dur { font-size: 11px; color: var(--text3); margin-top: 3px; }
+  /* Sections */
+  .session-header {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-left: 4px solid var(--accent); border-radius: 8px;
+    padding: 1.2rem 1.5rem; margin: 3rem 0 1.5rem;
+  }
+  .session-header h2 { font-size: 1.4rem; color: #fff; }
+  .session-header .meta {
+    font-family: 'Arial', sans-serif; font-size: 12px; color: var(--text3); margin-top: 4px;
+  }
+  h3 { font-size: 1.15rem; color: var(--accent); margin: 2rem 0 0.8rem; }
+  h4 { font-size: 1rem; color: var(--accent2); margin: 1.5rem 0 0.6rem; }
+  p { margin-bottom: 1rem; color: var(--text); }
+  /* Formula box */
+  .formula {
+    background: var(--formula-bg); border: 1px solid var(--formula-border);
+    border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.2rem 0;
+    font-family: 'Georgia', serif; overflow-x: auto;
+  }
+  .formula .label {
+    font-size: 11px; color: var(--accent); font-family: 'Arial', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+  }
+  .formula .eq { font-size: 1.05rem; color: #c8d8ff; line-height: 1.9; }
+  .formula .explain {
+    font-size: 13px; color: var(--text2); font-family: 'Arial', sans-serif;
+    margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px;
+  }
+  /* Definition box */
+  .def {
+    background: var(--def-bg); border: 1px solid var(--def-border);
+    border-radius: 8px; padding: 1rem 1.3rem; margin: 1.2rem 0;
+  }
+  .def .label { font-size: 11px; color: #a070e0; font-family: 'Arial', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  /* Theorem box */
+  .thm {
+    background: var(--thm-bg); border: 1px solid var(--thm-border);
+    border-radius: 8px; padding: 1rem 1.3rem; margin: 1.2rem 0;
+  }
+  .thm .label { font-size: 11px; color: #9080d0; font-family: 'Arial', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  /* Warning / tip */
+  .warn {
+    background: var(--warn-bg); border: 1px solid var(--warn-border);
+    border-radius: 8px; padding: 0.9rem 1.2rem; margin: 1rem 0;
+    font-family: 'Arial', sans-serif; font-size: 14px; color: #a8d080;
+  }
+  .tip {
+    background: var(--tip-bg); border: 1px solid var(--tip-border);
+    border-radius: 8px; padding: 0.9rem 1.2rem; margin: 1rem 0;
+    font-family: 'Arial', sans-serif; font-size: 14px; color: #70b8e0;
+  }
+  /* Code block */
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.2rem; overflow-x: auto;
+    font-family: 'Courier New', monospace; font-size: 13px; color: #a8c8f0;
+    margin: 1rem 0; line-height: 1.6;
+  }
+  .kw { color: #9080e0; }
+  .fn { color: #50c0e0; }
+  .cm { color: var(--text3); font-style: italic; }
+  .st { color: #a0e070; }
+  .nm { color: #f0a050; }
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-family: 'Arial', sans-serif; font-size: 14px; }
+  th { background: var(--bg3); color: var(--accent); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text2); }
+  tr:hover td { background: var(--bg3); }
+  /* Algorithm */
+  .algo {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.2rem 0;
+  }
+  .algo .label {
+    font-size: 11px; color: var(--accent3); font-family: 'Arial', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+  }
+  .algo ol { margin-left: 1.5rem; }
+  .algo li { color: var(--text); font-family: 'Arial', sans-serif; font-size: 14px; margin-bottom: 4px; }
+  /* Tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0.8rem 0; }
+  .tag {
+    background: var(--tag-bg); color: var(--accent); font-size: 11px;
+    font-family: 'Arial', sans-serif; padding: 3px 8px; border-radius: 4px;
+  }
+  /* Separator */
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  /* Summary card */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 1.5rem 0; }
+  .summary-card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1rem 1.2rem;
+  }
+  .summary-card h4 { margin-top: 0; font-size: 13px; }
+  .summary-card ul { font-family: 'Arial', sans-serif; font-size: 13px; color: var(--text2);
+    margin-left: 1rem; }
+  /* exam */
+  .exam {
+    background: #1a1010; border: 1px solid #5a1010;
+    border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.2rem 0;
+  }
+  .exam .label { font-size: 11px; color: #e06060; font-family: 'Arial', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  em { color: var(--accent2); font-style: italic; }
+  strong { color: var(--text); font-weight: bold; }
+</style>
+</head>
+<body>
+
+<nav>
+  <h2>Plan de révision</h2>
+  <a href="#overview" class="section">Vue d'ensemble</a>
+
+  <a href="#s1" class="section">Bloc 1 · 2h</a>
+  <a href="#s1-mc">Chaînes de Markov</a>
+  <a href="#s1-mdp">Modèles MDP</a>
+  <a href="#s1-bellman">Équations de Bellman</a>
+  <a href="#s1-verif">Th. de vérification</a>
+
+  <a href="#s2" class="section">Bloc 2 · 2h</a>
+  <a href="#s2-opt">Arrêt optimal</a>
+  <a href="#s2-ls">Longstaff-Schwartz</a>
+  <a href="#s2-tp">Exemple TP (Put)</a>
+
+  <a href="#s3" class="section">Bloc 3 · 2h</a>
+  <a href="#s3-rl">Problème RL</a>
+  <a href="#s3-agent">Interface agent</a>
+  <a href="#s3-perf">Critères de perf.</a>
+
+  <a href="#s4" class="section">Bloc 4 · 2h</a>
+  <a href="#s4-q">Fonction Q</a>
+  <a href="#s4-td">TD Learning</a>
+  <a href="#s4-qlearn">Q-learning</a>
+  <a href="#s4-sarsa">SARSA</a>
+  <a href="#s4-pol">Politiques</a>
+
+  <a href="#s5" class="section">Bloc 5 · 2h</a>
+  <a href="#s5-pg">Policy Gradient</a>
+  <a href="#s5-ac">Actor-Critic</a>
+
+  <a href="#s6" class="section">Bloc 6 · 2h</a>
+  <a href="#s6-form">Formules à retenir</a>
+  <a href="#s6-exam">Exam 2025</a>
+  <a href="#s6-conso">Exercice conso.</a>
+</nav>
+
+<main>
+
+<!-- ===== HERO ===== -->
+<div class="hero" id="overview">
+  <h1>Contrôle Stochastique & Arrêt Optimal</h1>
+  <p class="subtitle">Guide de révision complet · 12 heures · LPSM – Sorbonne Université</p>
+  <div class="plan-grid">
+    <div class="plan-card">
+      <div class="num">BLOC 1</div>
+      <div class="title">MDP & Bellman</div>
+      <div class="dur">2 heures</div>
+    </div>
+    <div class="plan-card">
+      <div class="num">BLOC 2</div>
+      <div class="title">Arrêt Optimal & Longstaff</div>
+      <div class="dur">2 heures</div>
+    </div>
+    <div class="plan-card">
+      <div class="num">BLOC 3</div>
+      <div class="title">RL – Fondements</div>
+      <div class="dur">2 heures</div>
+    </div>
+    <div class="plan-card">
+      <div class="num">BLOC 4</div>
+      <div class="title">Q-learning & SARSA</div>
+      <div class="dur">2 heures</div>
+    </div>
+    <div class="plan-card">
+      <div class="num">BLOC 5</div>
+      <div class="title">Policy Gradient & A-C</div>
+      <div class="dur">2 heures</div>
+    </div>
+    <div class="plan-card">
+      <div class="num">BLOC 6</div>
+      <div class="title">Révision & Exam 2025</div>
+      <div class="dur">2 heures</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- BLOC 1 : MDP et Contrôle Optimal -->
+<!-- ============================================================ -->
+<div class="session-header" id="s1">
+  <h2>Bloc 1 · Contrôle Optimal des MDP</h2>
+  <div class="meta">Chapitre 1 · Durée estimée : 2 heures</div>
+</div>
+
+<p>Ce bloc pose toutes les bases mathématiques. <strong>C'est le plus important</strong> : toute la suite (RL, arrêt optimal) en découle. Assurez-vous de maîtriser parfaitement les équations de Bellman et le théorème de vérification.</p>
+
+<h3 id="s1-mc">1.1 Systèmes dynamiques et chaînes de Markov</h3>
+
+<h4>Système déterministe contrôlé</h4>
+<p>Un système évolue dans l'espace d'état E selon :</p>
+<div class="formula">
+  <div class="label">Dynamique contrôlée</div>
+  <div class="eq">X_{n+1} = f_n(X_n, u_n)</div>
+  <div class="explain">où u_n ∈ C est le <em>contrôle</em> choisi à l'instant n, et f_n : E × C → E.</div>
+</div>
+
+<div class="def">
+  <div class="label">Définition – Chaîne de Markov</div>
+  <p>Un processus (X_n)_{n≥0} est une chaîne de Markov de transitions (P_n)_{n≥0} si :</p>
+  <div class="formula" style="margin:0.5rem 0">
+    <div class="eq">ℙ(X_{n+1} ∈ A | X_0, …, X_n) = P_n(X_n, A)</div>
+  </div>
+  <p style="margin-top:0.5rem">pour tout A ∈ ε. La propriété clé est que le futur ne dépend du passé qu'à travers l'état présent.</p>
+</div>
+
+<div class="tip">
+  💡 <strong>Intuition :</strong> On peut construire une chaîne de Markov via X_{n+1} = φ_n(X_n, ε_n) où les ε_n sont IID de loi µ. La transition vaut alors P_n(x, A) = µ{w : φ_n(x, w) ∈ A}.
+</div>
+
+<h4>Transition contrôlée</h4>
+
+<div class="def">
+  <div class="label">Définition – Contrôle (feedback)</div>
+  <p>Un contrôle est une suite π = (a_n)_n de fonctions mesurables a_n : E → C.</p>
+  <p>Un contrôle randomisé est une suite π = (a_n)_n de fonctions a_n : E → 𝒫(C) (mesures de probabilité).</p>
+</div>
+
+<h3 id="s1-mdp">1.2 Problème de contrôle optimal</h3>
+
+<p>On fixe un horizon terminal N, des fonctions de récompense intermédiaire r_0, …, r_{N-1} : E × C → ℝ, et une récompense terminale g : E → ℝ.</p>
+
+<div class="formula">
+  <div class="label">Objectif – Valeur optimale</div>
+  <div class="eq">
+    V(x) = sup_π V_π(x) <br><br>
+    V_π(x) = 𝔼_{x,π}[ Σ_{n=0}^{N-1} r_n(X_n, α_n) + g(X_N) ]
+  </div>
+  <div class="explain">
+    𝔼_{x,π} : espérance conditionnelle à X_0 = x sous la stratégie π.<br>
+    α_n = a_n(X_n) est la commande appliquée à l'état X_n.
+  </div>
+</div>
+
+<p>On définit les fonctions valeur intermédiaires :</p>
+
+<div class="formula">
+  <div class="label">Fonctions valeur au temps n</div>
+  <div class="eq">
+    V_{n,π}(x) = 𝔼^π_{n,x}[ Σ_{k=n}^{N-1} r_k(X_k, α_k) + g(X_N) ] <br><br>
+    V_n(x) = sup_π V_{n,π}(x)
+  </div>
+  <div class="explain">Notez que V_{N} = V_{N,π} = g pour tout π (condition terminale).</div>
+</div>
+
+<h3 id="s1-bellman">1.3 Opérateurs de récompense et équations de Bellman</h3>
+
+<h4>Opérateurs de récompense</h4>
+
+<div class="formula">
+  <div class="label">Trois opérateurs fondamentaux</div>
+  <div class="eq">
+    (L_n v)(x, a) := r_n(x, a) + ∫ v(y) P_n(dy|x, a) &nbsp;&nbsp; <span style="color:var(--text3)">[récompense + espérance continuée]</span><br><br>
+    (T_{n,f} v)(x) := (L_n v)(x, f(x)) &nbsp;&nbsp; <span style="color:var(--text3)">[opérateur de stratégie fixée f]</span><br><br>
+    (T_n v)(x) := sup_{a ∈ A} (L_n v)(x, a) &nbsp;&nbsp; <span style="color:var(--text3)">[opérateur maximal]</span>
+  </div>
+  <div class="explain">
+    T_n est l'<em>opérateur de récompense maximal au temps n</em>. Il est monotone : v ≤ w ⟹ T_n v ≤ T_n w.
+  </div>
+</div>
+
+<div class="thm">
+  <div class="label">Théorème – Itération des récompenses (Reward Iteration)</div>
+  <p>Pour π = (f_0, …, f_{N-1}) politique en N étapes :</p>
+  <div class="formula" style="margin:0.5rem 0">
+    <div class="eq">
+      V_{N,π} = g_N <br>
+      V_{n,π} = T_{n,f_n} V_{n+1,π} &nbsp;&nbsp; (n = 0, …, N-1)
+    </div>
+  </div>
+  <p><strong>Preuve en un mot :</strong> Conditionnement sur X_{n+1} + propriété de Markov.</p>
+</div>
+
+<div class="thm">
+  <div class="label">Théorème – Équations de Bellman</div>
+  <p>Les fonctions valeur optimales satisfont :</p>
+  <div class="formula" style="margin:0.5rem 0">
+    <div class="eq">
+      V_N = g_N<br>
+      V_n = T_n V_{n+1} = sup_{a ∈ A} { r_n(x,a) + ∫ V_{n+1}(y) P_n(dy|x,a) }, &nbsp; n = 0,…,N-1
+    </div>
+  </div>
+  <p>Et aussi : <strong>V_n = T_n T_{n+1} · · · T_{N-1} g_N</strong></p>
+</div>
+
+<div class="warn">
+  ⚠️ <strong>Attention à l'examen :</strong> Ces équations se résolvent en remontant le temps (<em>backward induction</em>) : on part de V_N = g et on remonte jusqu'à V_0. L'exercice 2 de l'examen 2025 utilise exactement cette structure.
+</div>
+
+<h3 id="s1-verif">1.4 Théorème de Vérification et Principe de Programmation Dynamique</h3>
+
+<div class="thm">
+  <div class="label">Théorème de Vérification</div>
+  <p>Soit (v_n)_{n=0}^N une solution des équations de Bellman.</p>
+  <p>(i) On a v_n ≥ V_n pour tout n.</p>
+  <p>(ii) Si f_n* est un maximiseur de v_{n+1} pour n = 0, …, N-1, alors v_n = V_n et la politique π* = (f_0*, …, f_{N-1}*) est optimale.</p>
+  <p><strong>Preuve :</strong> Récurrence rétrograde. Pour (i) : v_n = T_n v_{n+1} ≥ T_n V_{n+1} ≥ T_{n,f_n} V_{n+1} = V_{n,π}. Pour (ii) : l'égalité est atteinte.</p>
+</div>
+
+<div class="thm">
+  <div class="label">Théorème – Principe de Programmation Dynamique (DPP)</div>
+  <p>Sous l'hypothèse de structure, si (f_n*, …, f_{N-1}*) est optimal pour [n, N], alors (f_m*, …, f_{N-1}*) est optimal pour [m, N] pour tout m ≥ n. En d'autres termes :</p>
+  <div class="formula" style="margin:0.5rem 0">
+    <div class="eq">V_n(x) = sup_π 𝔼^π_{n,x}[ Σ_{k=n}^{m-1} r_k(X_k, f_k(X_k)) + V_m(X_m) ]</div>
+  </div>
+</div>
+
+<div class="tip">
+  💡 <strong>Le DPP en pratique :</strong> Pour résoudre un problème de contrôle, il suffit de calculer les fonctions valeur de façon rétrograde, puis d'extraire la politique optimale à chaque étape en maximisant.
+</div>
+
+<h4>Exemple : Problème de consommation (log-utilité)</h4>
+<p>C'est l'exercice 2 de l'examen 2025. Avec U(x) = log(x) :</p>
+
+<div class="formula">
+  <div class="label">Solution explicite</div>
+  <div class="eq">
+    V_n(x) = (N - n + 1) log(x) + d_n<br><br>
+    f_n*(x) = x / (N - n + 1) &nbsp;&nbsp; <span style="color:var(--text3)">[consommer 1/(N-n+1) du capital]</span>
+  </div>
+  <div class="explain">Famille de structure : M_n = {v : v(x) = b log(x) + d} est stable par T_n.</div>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<!-- BLOC 2 : Arrêt Optimal -->
+<!-- ============================================================ -->
+<div class="session-header" id="s2">
+  <h2>Bloc 2 · Arrêt Optimal & Longstaff-Schwartz</h2>
+  <div class="meta">Chapitre 1 (arrêt) + TP Put Bermudéen · Durée estimée : 2 heures</div>
+</div>
+
+<p>L'arrêt optimal est un cas particulier du contrôle stochastique où le seul contrôle est la décision d'arrêter ou de continuer. C'est l'exercice 1 de votre examen 2025.</p>
+
+<h3 id="s2-opt">2.1 Problème d'Arrêt Optimal</h3>
+
+<div class="def">
+  <div class="label">Définition – Temps d'arrêt</div>
+  <p>τ est un temps d'arrêt si {τ = n} ∈ F_n pour tout n. On note 𝒯_k l'ensemble des temps d'arrêt à valeurs dans {k, k+1, …, N}.</p>
+</div>
+
+<div class="formula">
+  <div class="label">Problème d'arrêt optimal</div>
+  <div class="eq">
+    V_0(x_0) = sup_{τ ∈ 𝒯_0} 𝔼[ Z_τ ] = sup_{τ ∈ 𝒯_0} 𝔼[ φ(τ, X_τ) ]
+  </div>
+  <div class="explain">
+    Z_n = φ(n, X_n) est le gain si on exerce à l'instant n.<br>
+    Exemple du Put Bermudéen : Z_n = e^{-rn·T/N} (K - X_n)_+
+  </div>
+</div>
+
+<h4>Équations de Bellman pour l'arrêt optimal</h4>
+
+<div class="formula">
+  <div class="label">Récurrence rétrograde (cas arrêt optimal)</div>
+  <div class="eq">
+    V_N(x) = φ(N, x) &nbsp;&nbsp; <span style="color:var(--text3)">[condition terminale]</span><br><br>
+    V_n(x) = max{ φ(n, x), &nbsp;C_n(x) } &nbsp;&nbsp; <span style="color:var(--text3)">[exercer ou continuer ?]</span><br><br>
+    C_n(x) = 𝔼[ V_{n+1}(X_{n+1}) | X_n = x ] = P_{n+1} V_{n+1}(x) &nbsp;&nbsp; <span style="color:var(--text3)">[valeur de continuation]</span>
+  </div>
+  <div class="explain">
+    V_n(x) = valeur optimale en partant de l'état x au temps n.<br>
+    C_n(x) = espérance de la valeur optimale future = valeur de continuer.<br>
+    On exerce si φ(n, x) ≥ C_n(x), on continue sinon.
+  </div>
+</div>
+
+<div class="thm">
+  <div class="label">Propriétés du processus valeur S_n = V_n(X_n)</div>
+  <p>Le processus (S_n)_{n=0,…,N} est une <em>surmartingale</em> sous P. De plus :</p>
+  <ul style="margin-left:1.5rem; font-family:'Arial',sans-serif; font-size:14px; color:var(--text2);">
+    <li>Le temps d'arrêt optimal est τ_n = min{k ≥ n : S_k = φ(k, X_k)} = min{k ≥ n : V_k(X_k) = Z_k}</li>
+    <li>Le processus S_n arrêté en τ_0 est une martingale</li>
+  </ul>
+</div>
+
+<h4>Représentation de la valeur de continuation</h4>
+
+<div class="formula">
+  <div class="label">Représentation clé (examen Q.3)</div>
+  <div class="eq">
+    C_n(x) = 𝔼[ Z_{τ_{n+1}} | X_n = x ]
+  </div>
+  <div class="explain">
+    La valeur de continuation en n est l'espérance du gain de l'arrêt optimal à partir de n+1.<br>
+    <strong>Preuve :</strong> V_{n+1}(y) = 𝔼^y[Z_{τ_{n+1}}] par définition de τ_{n+1}. En intégrant contre P_{n+1}(x, dy) on obtient C_n(x) = 𝔼[Z_{τ_{n+1}} | X_n = x].
+  </div>
+</div>
+
+<h4>Récurrence sur les temps d'arrêt optimaux (examen Q.4)</h4>
+
+<div class="formula">
+  <div class="label">Structure récursive des τ_n</div>
+  <div class="eq">
+    τ_N = N<br><br>
+    τ_n = n · 1_{Z_n ≥ 𝔼[Z_{τ_{n+1}} | X_n]} + τ_{n+1} · 1_{Z_n < 𝔼[Z_{τ_{n+1}} | X_n]}<br>
+    &nbsp;&nbsp;&nbsp; = n · B_n + τ_{n+1} · (1 - B_n)
+  </div>
+  <div class="explain">
+    B_n = 1_{Z_n ≥ C_n(X_n)} : indicateur « on exerce maintenant ».<br>
+    V_0(x_0) = 𝔼[Z_{τ_0}] = max{ φ(0, x_0), 𝔼[Z_{τ_1}] }
+  </div>
+</div>
+
+<h3 id="s2-ls">2.2 Algorithme de Longstaff-Schwartz</h3>
+
+<p>Problème pratique : comment calculer C_n(x) = 𝔼[Z_{τ_{n+1}} | X_n = x] quand la dimension est grande ? On utilise la régression sur un échantillon de Monte Carlo.</p>
+
+<h4>Idée centrale</h4>
+<p>Étant donné M trajectoires (X_n^{(j)})_{n,j}, on approche C_n(x) par une régression sur une base de fonctions :</p>
+
+<div class="formula">
+  <div class="label">Approximation par régression linéaire</div>
+  <div class="eq">
+    Φ(x; θ) = Σ_{k=1}^m θ_k e_k(x)<br><br>
+    θ_n* = argmin_θ Σ_{j=1}^M | Z^{(j)}_{τ_{n+1}} - Φ(X_n^{(j)}; θ) |²
+  </div>
+  <div class="explain">
+    (e_k)_{k=1,…,m} : fonctions de base (ex : 1, x, x², x³ pour le TP).<br>
+    θ_n* = (E^T E)^{-1} E^T Y où E_{jk} = e_k(X_n^{(j)}) et Y_j = Z^{(j)}_{τ_{n+1}}.
+  </div>
+</div>
+
+<div class="algo">
+  <div class="label">Algorithme de Longstaff-Schwartz (A_LS)</div>
+  <ol>
+    <li>Simuler M trajectoires (X_n^{(j)})_{n=0,…,N}, 1 ≤ j ≤ M</li>
+    <li>Initialiser : τ^{(j)}_N = N, payoff_opt^{(j)} = Z_N^{(j)} = φ(N, X_N^{(j)})</li>
+    <li>Pour n = N-1, …, 1 (boucle rétrograde) :
+      <ul style="margin-left:1.5rem; margin-top:4px;">
+        <li>Régresser payoff_opt sur {X_n^{(j)}} → obtenir θ_n</li>
+        <li>Calculer Φ(X_n^{(j)}; θ_n) ≈ C_n(X_n^{(j)})</li>
+        <li>Pour chaque j : si Z_n^{(j)} ≥ Φ(X_n^{(j)}; θ_n), alors τ^{(j)} = n et payoff_opt^{(j)} = Z_n^{(j)}</li>
+      </ul>
+    </li>
+    <li>Estimateur : V̂_0 = (1/M) Σ_j payoff_opt^{(j)}</li>
+  </ol>
+</div>
+
+<h4>Sources d'erreur</h4>
+<div class="summary-grid">
+  <div class="summary-card">
+    <h4>Erreur de discrétisation</h4>
+    <ul>
+      <li>Horizon N fini</li>
+      <li>Temps discrets seulement</li>
+      <li>Diminue avec N → ∞</li>
+    </ul>
+  </div>
+  <div class="summary-card">
+    <h4>Erreur de projection</h4>
+    <ul>
+      <li>Base de fonctions trop petite</li>
+      <li>C_n ∉ Vect(e_1, …, e_m)</li>
+      <li>Diminue avec m → ∞</li>
+    </ul>
+  </div>
+  <div class="summary-card">
+    <h4>Erreur Monte Carlo</h4>
+    <ul>
+      <li>Variance σ² / M</li>
+      <li>IC 95% : ±1.96 σ/√M</li>
+      <li>Diminue avec M → ∞</li>
+    </ul>
+  </div>
+  <div class="summary-card">
+    <h4>Biais de l'estimateur</h4>
+    <ul>
+      <li>Sous-optimal (lower bound)</li>
+      <li>Corrigé par re-simulation</li>
+      <li>Sur-apprentissage si m grand</li>
+    </ul>
+  </div>
+</div>
+
+<div class="warn">
+  ⚠️ <strong>Point clé :</strong> L'estimateur V̂_0 est un estimateur par défaut (lower bound) : il est toujours inférieur ou égal à la vraie valeur V_0. Pour obtenir un upper bound, il faut utiliser la dualité de Rogers ou la re-simulation.
+</div>
+
+<h3 id="s2-tp">2.3 Exemple du TP – Put Bermudéen en Black-Scholes 1D</h3>
+
+<h4>Modèle</h4>
+<div class="formula">
+  <div class="label">Black-Scholes discret</div>
+  <div class="eq">
+    X_n = S_{t_n} = x_0 · exp( (r - σ²/2) n·T/N + σ W_{nT/N} )<br><br>
+    X_{n+1} = X_n · exp( (r - σ²/2) h + σ √h · ε_{n+1} ), &nbsp; ε_{n+1} ~ N(0,1)
+  </div>
+  <div class="explain">Paramètres du TP : r = 0.1, σ = 0.25, x₀ = 100, K = 110, N = 10, T = 1, M = 10⁶</div>
+</div>
+
+<div class="formula">
+  <div class="label">Payoff actualisé du Put</div>
+  <div class="eq">Z_n = φ(n, X_n) = e^{-r n T/N} (K - X_n)_+</div>
+</div>
+
+<h4>Bases de fonctions utilisées dans le TP</h4>
+<pre><span class="kw">def</span> <span class="fn">base1_ek</span>(x):
+    <span class="cm"># Polynôme : 1, x, x², x³</span>
+    <span class="kw">return</span> np.array([np.ones_like(x), x, x**<span class="nm">2</span>, x**<span class="nm">3</span>])
+
+<span class="kw">def</span> <span class="fn">base2_ek</span>(x):
+    <span class="cm"># Idem + (K-x)₊ (payoff dans la base)</span>
+    <span class="kw">return</span> np.array([np.ones_like(x), np.maximum(K-x, <span class="nm">0</span>), x, x**<span class="nm">2</span>, x**<span class="nm">3</span>])</pre>
+
+<p><strong>Avantage de base2 :</strong> En incluant le payoff dans la base, on capture mieux le comportement autour du strike K. La base2 donne généralement un prix plus précis.</p>
+
+<h4>Code central de l'algorithme LS (TP)</h4>
+<pre>payoff_opt = payoffs_Z[N].copy()  <span class="cm"># Initialisation : valeur terminale</span>
+
+<span class="kw">for</span> n <span class="kw">in</span> reversed(range(<span class="nm">1</span>, N)):
+    <span class="cm"># Régression : payoff_opt ~ Φ(X_n; θ)</span>
+    thetas[n] = theta_by_regression(payoff_opt, sample_X[n])
+    
+    <span class="cm"># Décision : exercer si Z_n ≥ Φ(X_n; θ_n)</span>
+    stop_at_n = payoffs_Z[n] >= function_Phi(sample_X[n], thetas[n])
+    
+    <span class="cm"># Mise à jour des payoffs optimaux</span>
+    payoff_opt[stop_at_n] = payoffs_Z[n, stop_at_n].copy()</pre>
+
+<div class="tip">
+  💡 <strong>Interprétation :</strong> À chaque étape n, on compare le payoff immédiat Z_n avec l'estimation de la valeur de continuation Φ(X_n; θ_n). Si Z_n ≥ continuation → on « stopppe » et on met à jour le payoff optimal pour cette trajectoire.
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<!-- BLOC 3 : RL Fondements -->
+<!-- ============================================================ -->
+<div class="session-header" id="s3">
+  <h2>Bloc 3 · Apprentissage par Renforcement – Fondements</h2>
+  <div class="meta">Chapitre 2 · Durée estimée : 2 heures</div>
+</div>
+
+<h3 id="s3-rl">3.1 Le problème RL</h3>
+
+<p>Le RL répond à la question : <em>Comment agir sur un système pour optimiser une récompense sans connaissance complète du système ?</em></p>
+
+<table>
+  <tr><th>Paradigme</th><th>Connaissance</th><th>Objectif</th></tr>
+  <tr><td>Supervisé</td><td>Exemples (x, y) étiquetés</td><td>Prédire y à partir de x</td></tr>
+  <tr><td>Non-supervisé</td><td>Données x non étiquetées</td><td>Trouver une structure cachée</td></tr>
+  <tr><td><strong>Reinforcement</strong></td><td>Interactions + récompenses</td><td><strong>Maximiser la récompense cumulée</strong></td></tr>
+</table>
+
+<div class="formula">
+  <div class="label">Problème RL – Cas MDP avec dynamique inconnue</div>
+  <div class="eq">
+    Trouver π* = argmax_π V_π(x) = argmax_π 𝔼_{x,π}[ Σ_{n=0}^{N-1} r_n(X_n, α_n) + g(X_N) ]
+  </div>
+  <div class="explain">
+    Différence avec le contrôle classique : P (transitions) et r (récompenses) sont <em>inconnues</em>.<br>
+    On apprend P et r implicitement (model-free) ou explicitement (model-based).
+  </div>
+</div>
+
+<h3 id="s3-agent">3.2 Interface Agent-Environnement</h3>
+
+<p>À chaque pas de temps n :</p>
+<ol style="margin-left:1.5rem; font-family:'Arial',sans-serif; font-size:14px; color:var(--text2); line-height:2;">
+  <li>L'<strong>agent</strong> observe l'état s_n ∈ S</li>
+  <li>L'agent choisit une action a_n ∈ A</li>
+  <li>L'<strong>environnement</strong> retourne la récompense r_n et le nouvel état s_{n+1}</li>
+  <li>Le tuple (s_n, a_n, r_n, s_{n+1}) est un <em>sample</em></li>
+</ol>
+
+<div class="formula">
+  <div class="label">Histoire / Expérience jusqu'au temps n</div>
+  <div class="eq">h_n = {(s_u, a_u, r_u, s_{u+1})}_{u=0}^n</div>
+</div>
+
+<h4>Exploration vs Exploitation</h4>
+<p>C'est le défi central du RL :</p>
+<div class="summary-grid">
+  <div class="summary-card">
+    <h4>Exploitation</h4>
+    <ul>
+      <li>Utiliser ce qu'on connaît</li>
+      <li>Maximiser la récompense immédiate</li>
+      <li>Risque : minimum local</li>
+    </ul>
+  </div>
+  <div class="summary-card">
+    <h4>Exploration</h4>
+    <ul>
+      <li>Essayer de nouvelles actions</li>
+      <li>Découvrir de meilleures stratégies</li>
+      <li>Coût : sous-optimalité à court terme</li>
+    </ul>
+  </div>
+</div>
+
+<h3 id="s3-perf">3.3 Critères de Performance</h3>
+
+<table>
+  <tr><th>Critère</th><th>Définition</th><th>Usage</th></tr>
+  <tr><td>Sample complexity</td><td>Nb de samples pour ε-optimalité</td><td>Efficacité globale</td></tr>
+  <tr><td>Rate of convergence</td><td>Nb d'itérations pour précision donnée</td><td>Vitesse théorique</td></tr>
+  <tr><td>Regret</td><td>R(π) = V*(x) - V_π(x) cumulé</td><td>Analyse en ligne</td></tr>
+  <tr><td>Convergence asymptotique</td><td>Erreur → 0 quand N → ∞</td><td>Preuve de base</td></tr>
+</table>
+
+<h4>Composantes d'un algorithme RL</h4>
+<div class="tags">
+  <span class="tag">Fonction de valeur V(s) ou Q(s,a)</span>
+  <span class="tag">Représentation de la politique π</span>
+  <span class="tag">Modèle de l'environnement (model-based)</span>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<!-- BLOC 4 : Value-Based -->
+<!-- ============================================================ -->
+<div class="session-header" id="s4">
+  <h2>Bloc 4 · Algorithmes Value-Based</h2>
+  <div class="meta">Chapitre 3 · Durée estimée : 2 heures</div>
+</div>
+
+<h3 id="s4-q">4.1 Fonction de valeur et Q-fonction</h3>
+
+<div class="formula">
+  <div class="label">Fonction de valeur de la politique π</div>
+  <div class="eq">
+    V_{n,π}(x) = 𝔼^π_{n,x}[ Σ_{k=n}^{N-1} r_k(X_k, α_k) + g_N(X_N) ]
+  </div>
+</div>
+
+<div class="formula">
+  <div class="label">Q-fonction (état-action) de la politique π</div>
+  <div class="eq">
+    Q_{n,π}(x, a) = 𝔼^π_{n,x,a}[ Σ_{k=n}^{N-1} r_k(X_k, α_k) + g_N(X_N) ]
+  </div>
+  <div class="explain">
+    Différence : dans V, α_n ~ f_n(.|X_n) ; dans Q, on fixe (X_n, α_n) = (x, a).
+  </div>
+</div>
+
+<div class="formula">
+  <div class="label">Lien V ↔ Q</div>
+  <div class="eq">
+    V_{n,π}(x) = 𝔼_{a ~ f_n(x)}[ Q_{n,π}(x, a) ]<br><br>
+    V_n(x) = sup_{a ∈ A} Q_n(x, a)
+  </div>
+</div>
+
+<h4>Équations de Bellman pour Q*</h4>
+
+<div class="formula">
+  <div class="label">Bellman pour la Q-fonction optimale</div>
+  <div class="eq">
+    Q_N(x, a) = g_N(x)<br><br>
+    Q_n(x, a) = r_n(x, a) + 𝔼_{x' ~ P_n(·|x,a)}[ sup_{a' ∈ A} Q_{n+1}(x', a') ]
+  </div>
+  <div class="explain">
+    C'est cette équation que le Q-learning cherche à résoudre par approximation stochastique.
+  </div>
+</div>
+
+<h3 id="s4-td">4.2 TD Learning (Temporal Difference)</h3>
+
+<p>TD learning estime V_π par approximation stochastique. La mise à jour fondamentale est :</p>
+
+<div class="formula">
+  <div class="label">Mise à jour TD(0)</div>
+  <div class="eq">
+    V̂_{n,π}(x) ← V̂_{n,π}(x) + η · δ_n<br><br>
+    δ_n = r_n + V̂_{n+1,π}(x') - V̂_{n,π}(x) &nbsp;&nbsp; <span style="color:var(--text3)">[erreur TD]</span>
+  </div>
+  <div class="explain">
+    η = η_n(x, a) ∈ (0,1) : taux d'apprentissage.<br>
+    x' : état suivant observé après action a depuis x.
+  </div>
+</div>
+
+<h4>Famille TD(λ)</h4>
+
+<div class="formula">
+  <div class="label">TD(λ) pour λ ∈ [0,1]</div>
+  <div class="eq">
+    V̂_{n,π}(x) ← V̂_{n,π}(x) + η · Σ_{k=n}^{N-1} λ^{k-n} δ_k
+  </div>
+  <div class="explain">
+    TD(0) : λ = 0, une seule erreur → faible variance, biais.<br>
+    TD(1) = Monte-Carlo : λ = 1, toute la trajectoire → pas de biais, haute variance.<br>
+    λ intermédiaire : compromis biais-variance.
+  </div>
+</div>
+
+<h3 id="s4-qlearn">4.3 Q-learning</h3>
+
+<p>Le Q-learning est une approximation stochastique de l'équation de Bellman pour Q*. C'est un algorithme <em>off-policy</em> : la politique d'exploration peut être différente de la politique optimale apprise.</p>
+
+<div class="formula">
+  <div class="label">Mise à jour Q-learning</div>
+  <div class="eq">
+    Q̂_n(x, a) ← Q̂_n(x, a) + η · δ_n<br><br>
+    δ_n = r_n + sup_{a' ∈ A} Q̂_{n+1}(x', a') - Q̂_n(x, a)
+  </div>
+  <div class="explain">
+    Notez le sup_{a'} : on utilise la meilleure action possible à x', même si ce n'est pas celle jouée.
+  </div>
+</div>
+
+<div class="thm">
+  <div class="label">Théorème de convergence (Watkins & Dayan 1992)</div>
+  <p>Si A et S sont finis, les récompenses bornées, et le taux η_k ∈ [0,1) vérifie les <em>conditions de Robbins-Monro</em> :</p>
+  <div class="formula" style="margin:0.5rem 0">
+    <div class="eq">
+      Σ_{i=0}^∞ η_{k_i(s,a)} = +∞ &nbsp;&nbsp; et &nbsp;&nbsp; Σ_{i=0}^∞ |η_{k_i(s,a)}|² < +∞
+    </div>
+  </div>
+  <p>et si tout (s, a) est visité infiniment souvent, alors Q̂^k(s, a) → Q(s, a) p.s.</p>
+</div>
+
+<div class="algo">
+  <div class="label">Algorithme Q-learning</div>
+  <ol>
+    <li>Initialiser Q̂_n(x, a) pour tout n, x, a</li>
+    <li>Pour k = 0 à K (épisodes) :</li>
+    <li>&nbsp;&nbsp;&nbsp;Poser état initial x</li>
+    <li>&nbsp;&nbsp;&nbsp;Pour n = 0 à N-1 :</li>
+    <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Choisir action a selon politique d'exploration</li>
+    <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Observer r_n et x'</li>
+    <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;δ_n = r_n + sup_{a'} Q̂_{n+1}(x', a') - Q̂_n(x, a)</li>
+    <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Q̂_n(x,a) ← Q̂_n(x,a) + η δ_n</li>
+    <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x ← x'</li>
+    <li>Politique optimale : f̂_n(x) ∈ argmax_a Q̂_n(x, a)</li>
+  </ol>
+</div>
+
+<h3 id="s4-sarsa">4.4 SARSA (on-policy)</h3>
+
+<p>SARSA est on-policy : la politique d'exploration et la politique apprise sont la même. Il alterne évaluation et amélioration de la politique courante π^k.</p>
+
+<div class="formula">
+  <div class="label">Mise à jour SARSA</div>
+  <div class="eq">
+    δ_n = r_n + Q̂_{n+1}(x', a') - Q̂_n(x, a)
+  </div>
+  <div class="explain">
+    Différence vs Q-learning : on utilise Q(x', a') avec a' ~ f_n(x') (action réellement jouée), non sup_{a'} Q(x', a').
+  </div>
+</div>
+
+<table>
+  <tr><th></th><th>Q-learning</th><th>SARSA</th></tr>
+  <tr><td>Type</td><td>Off-policy</td><td>On-policy</td></tr>
+  <tr><td>Cible δ_n</td><td>r + sup Q(x', a')</td><td>r + Q(x', a') avec a' jouée</td></tr>
+  <tr><td>Convergence</td><td>Vers Q*</td><td>Vers Q^π</td></tr>
+  <tr><td>Exploration</td><td>Découplée de la politique</td><td>Couplée à la politique</td></tr>
+</table>
+
+<h3 id="s4-pol">4.5 Politiques d'Exploration</h3>
+
+<h4>ε-greedy</h4>
+<div class="formula">
+  <div class="label">Politique ε-greedy</div>
+  <div class="eq">
+    α_n ~ argmax_{a} Q̂_n(x, a) &nbsp; avec prob. (1 - ε)<br>
+    α_n ~ U(A) &nbsp; avec prob. ε
+  </div>
+  <div class="explain">ε ∈ (0,1) : paramètre d'exploration. Plus ε est grand, plus on explore.</div>
+</div>
+
+<h4>Politique Soft-max (Boltzmann)</h4>
+<div class="formula">
+  <div class="label">Politique Soft-max</div>
+  <div class="eq">
+    f_n(x, a) = exp(Q_n(x,a)/λ) / Σ_{a' ∈ A} exp(Q_n(x,a')/λ)
+  </div>
+  <div class="explain">
+    λ → +∞ : distribution uniforme (exploration pure).<br>
+    λ → 0 : politique greedy (exploitation pure).<br>
+    <strong>Lien avec l'entropie de Shannon :</strong> c'est la solution du problème max_p 𝔼_{a~p}[Q(a)] + λH(p).
+  </div>
+</div>
+
+<div class="tip">
+  💡 <strong>À l'examen :</strong> Savoir expliquer pourquoi la soft-max est la solution du problème d'entropie régularisée. La preuve utilise les conditions du 1er ordre : ∂/∂p(a) [Σ p(a')Q(a') - λ Σ p(a')log(p(a'))] = Q(a) - λ(1 + log p(a)) = 0.
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<!-- BLOC 5 : Policy-Based -->
+<!-- ============================================================ -->
+<div class="session-header" id="s5">
+  <h2>Bloc 5 · Algorithmes Policy-Based</h2>
+  <div class="meta">Chapitre 4 · Durée estimée : 2 heures</div>
+</div>
+
+<p>Au lieu d'apprendre V ou Q et d'en déduire la politique, on paramétrise directement la politique π^θ et on optimise θ.</p>
+
+<h3 id="s5-pg">5.1 Policy Gradient – REINFORCE</h3>
+
+<div class="formula">
+  <div class="label">Objectif – Récompense espérée</div>
+  <div class="eq">
+    J(θ) = 𝔼_{π^θ}[ Σ_{k=0}^{N-1} r_k(X_k, α_k) + g_N(X_N) ] = 𝔼_{π^θ}[R(S)]
+  </div>
+  <div class="explain">
+    S = (X_0, α_0, …, X_{N-1}, α_{N-1}, X_N) : trajectoire complète.<br>
+    π^θ paramétrisé par densités a ↦ p^θ_n(x, a).
+  </div>
+</div>
+
+<div class="thm">
+  <div class="label">Théorème – Gradient de la politique (Policy Gradient Theorem)</div>
+  <div class="formula" style="margin:0.5rem 0">
+    <div class="eq">
+      ∇_θ J(θ) = 𝔼_{π^θ}[ R(S) · Σ_{k=0}^{N-1} ∇_θ log p^θ_k(X_k, α_k) ]
+    </div>
+  </div>
+  <p><strong>Preuve :</strong> On écrit Π^θ(ds) = p̃^θ(s) P̃(ds), puis on dérive J = ∫ R(s) p̃^θ(s) P̃(ds) et on utilise ∇_θ log p̃^θ = ∇_θ p̃^θ / p̃^θ.</p>
+</div>
+
+<div class="formula">
+  <div class="label">Terme ∇_θ log p̃^θ(S)</div>
+  <div class="eq">
+    ∇_θ log p̃^θ(S) = Σ_{n=0}^{N-1} ∇_θ log p^θ_n(X_n, α_n)
+  </div>
+  <div class="explain">Seul le terme de la politique dépend de θ ; les transitions P_n n'en dépendent pas.</div>
+</div>
+
+<div class="algo">
+  <div class="label">Algorithme REINFORCE</div>
+  <ol>
+    <li>Initialiser θ</li>
+    <li>Pour m = 1 à M (itérations) :
+      <ul style="margin-left:1.5rem; margin-top:4px;">
+        <li>Générer K trajectoires S^1, …, S^K selon Π^θ</li>
+        <li>Estimer ∇_θ J ≈ (1/K) Σ_k R(S^k) Σ_n ∇_θ log p^θ_n(X^k_n, α^k_n)</li>
+        <li>Mise à jour : θ ← θ + η · ∇̂_θ J</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<h4>Réduction de variance – Baseline</h4>
+<p>On peut soustraire une constante C à R sans changer le gradient :</p>
+<div class="formula">
+  <div class="label">Gradient avec baseline</div>
+  <div class="eq">
+    ∇_θ J(θ) = 𝔼_{π^θ}[ (R(S) - C) · Σ_k ∇_θ log p^θ_k(X_k, α_k) ]
+  </div>
+  <div class="explain">
+    Preuve : 𝔼[C · Σ_k ∇_θ log p^θ_k] = C · ∇_θ ∫ Π^θ(ds) = C · ∇_θ 1 = 0.<br>
+    Meilleure baseline : C = 𝔼[R(S)] ≈ V_{π^θ}(X_0). → Actor-Critic !
+  </div>
+</div>
+
+<h3 id="s5-ac">5.2 Actor-Critic</h3>
+
+<p>L'actor-critic combine l'apprentissage de V_π (critic) et de π^θ (actor). La clé est la représentation du gradient basée sur la DP :</p>
+
+<div class="thm">
+  <div class="label">Théorème – Actor/Critic Gradient Representation</div>
+  <div class="formula" style="margin:0.5rem 0">
+    <div class="eq">
+      ∇_θ J(θ) = Σ_{k=0}^{N-1} 𝔼_{π^θ}[ (r_k(X_k,α_k) + V_{k+1,π^θ}(X_{k+1}) - V_{k,π^θ}(X_k)) · ∇_θ log p^θ_k(X_k, α_k) ]
+    </div>
+  </div>
+  <p><strong>Interprétation :</strong> Le terme (r_k + V_{k+1} - V_k) est l'<em>erreur TD</em> – une mesure de l'avantage d'avoir pris l'action α_k.</p>
+  <p><strong>Preuve :</strong> On différentie la relation de Bellman V_{k,π^θ} = 𝔼[r_k + V_{k+1,π^θ}] par rapport à θ, en utilisant la règle de la dérivée sous l'espérance.</p>
+</div>
+
+<div class="summary-grid">
+  <div class="summary-card">
+    <h4>Actor (θ)</h4>
+    <ul>
+      <li>Représente la politique π^θ</li>
+      <li>Mise à jour par gradient de J</li>
+      <li>Utilise le signal du critic</li>
+    </ul>
+  </div>
+  <div class="summary-card">
+    <h4>Critic (φ)</h4>
+    <ul>
+      <li>Représente V^φ_n(x) ≈ V_{n,π^θ}(x)</li>
+      <li>Entraîné par régression DP</li>
+      <li>Fournit la baseline à l'actor</li>
+    </ul>
+  </div>
+</div>
+
+<div class="formula">
+  <div class="label">Mise à jour Actor-Critic (offline)</div>
+  <div class="eq">
+    θ ← θ + η^G · 𝔼_{π^θ}[ Σ_k (r_k + V^φ_{k+1}(X_{k+1}) - V^φ_k(X_k)) · ∇_θ log p^θ_k ]<br><br>
+    φ ← argmin_φ 𝔼_{π^θ}[ | Σ_k (r_k + V^φ_{k+1}(X_{k+1}) - V^φ_k(X_k)) |² ]
+  </div>
+</div>
+
+<hr>
+
+<!-- ============================================================ -->
+<!-- BLOC 6 : RÉVISION -->
+<!-- ============================================================ -->
+<div class="session-header" id="s6">
+  <h2>Bloc 6 · Formules Clés + Exercices d'Examen</h2>
+  <div class="meta">Révision finale · Durée estimée : 2 heures</div>
+</div>
+
+<h3 id="s6-form">6.1 Formulaire à Maîtriser</h3>
+
+<div class="formula">
+  <div class="label">F1 – Équations de Bellman (MDP)</div>
+  <div class="eq">
+    V_N = g_N<br>
+    V_n(x) = sup_{a ∈ A} { r_n(x,a) + ∫ V_{n+1}(y) P_n(dy|x,a) }
+  </div>
+</div>
+
+<div class="formula">
+  <div class="label">F2 – Arrêt Optimal</div>
+  <div class="eq">
+    V_N(x) = φ(N, x)<br>
+    C_n(x) = 𝔼[V_{n+1}(X_{n+1}) | X_n = x] = 𝔼[Z_{τ_{n+1}} | X_n = x]<br>
+    V_n(x) = max{ φ(n, x), C_n(x) }
+  </div>
+</div>
+
+<div class="formula">
+  <div class="label">F3 – Bellman pour Q*</div>
+  <div class="eq">
+    Q_N(x,a) = g_N(x)<br>
+    Q_n(x,a) = r_n(x,a) + 𝔼_{x'~P_n}[ max_{a'} Q_{n+1}(x',a') ]
+  </div>
+</div>
+
+<div class="formula">
+  <div class="label">F4 – Mise à jour Q-learning</div>
+  <div class="eq">
+    Q̂_n(x,a) ← Q̂_n(x,a) + η · (r_n + max_{a'} Q̂_{n+1}(x',a') - Q̂_n(x,a))
+  </div>
+</div>
+
+<div class="formula">
+  <div class="label">F5 – Policy Gradient Theorem</div>
+  <div class="eq">
+    ∇_θ J(θ) = 𝔼_{π^θ}[ R(S) · Σ_{k=0}^{N-1} ∇_θ log p^θ_k(X_k, α_k) ]
+  </div>
+</div>
+
+<div class="formula">
+  <div class="label">F6 – Actor-Critic Gradient</div>
+  <div class="eq">
+    ∇_θ J(θ) = Σ_k 𝔼_{π^θ}[ (r_k + V_{k+1,π^θ}(X_{k+1}) - V_{k,π^θ}(X_k)) · ∇_θ log p^θ_k ]
+  </div>
+</div>
+
+<div class="formula">
+  <div class="label">F7 – Soft-max Policy</div>
+  <div class="eq">
+    f_n(x, a) = exp(Q_n(x,a)/λ) / Σ_{a'} exp(Q_n(x,a')/λ)
+  </div>
+  <div class="explain">Solution de : max_{p ∈ P(A)} 𝔼_{a~p}[Q(a)] + λ H(p) où H(p) = -𝔼[log p(a)]</div>
+</div>
+
+<div class="formula">
+  <div class="label">F8 – Estimateur Monte Carlo (TP)</div>
+  <div class="eq">
+    V̂_0 = (1/M) Σ_{j=1}^M payoff_opt^{(j)}<br>
+    IC 95% : V̂_0 ± 1.96 · √(Var/M)
+  </div>
+</div>
+
+<h3 id="s6-exam">6.2 Exercice 1 – Examen Mai 2025 (Arrêt Optimal)</h3>
+
+<div class="exam">
+  <div class="label">Exercice 1 – Corrigé détaillé</div>
+
+  <h4 style="color:#e06060; margin-top:0.5rem">Q.1 – Récurrence rétrograde</h4>
+  <p>La suite (V_n)_{n=0,…,N} satisfait :</p>
+  <div class="formula" style="margin:0.5rem 0">
+    <div class="eq">
+      V_N(x) = φ_N(x) = Z_N<br>
+      V_n(x) = max{ φ_n(x), P_{n+1}V_{n+1}(x) } = max{ φ_n(x), 𝔼[V_{n+1}(X_{n+1}) | X_n = x] }
+    </div>
+  </div>
+  <p>Le noyau de transition intervient via P_{n+1}V_{n+1}(x) = ∫ V_{n+1}(y) P_{n+1}(x, dy).</p>
+
+  <h4 style="color:#e06060; margin-top:1rem">Q.2 – Propriété de (S_n)</h4>
+  <p>S_n = V_n(X_n). Ce processus est une <strong>surmartingale</strong>.</p>
+  <p><strong>Preuve :</strong> 𝔼[S_{n+1} | F_n] = 𝔼[V_{n+1}(X_{n+1}) | X_n] = C_n(X_n) ≤ V_n(X_n) = S_n (car V_n ≥ C_n).</p>
+  <p>De plus, S_n arrêté en τ_0 est une martingale (car on exerce exactement quand S_n = Z_n).</p>
+
+  <h4 style="color:#e06060; margin-top:1rem">Q.3 – Représentation C_n(x) = 𝔼[Z_{τ_{n+1}} | X_n = x]</h4>
+  <p>Par définition de τ_{n+1} : V_{n+1}(y) = 𝔼[Z_{τ_{n+1}} | X_{n+1} = y].</p>
+  <p>Donc : C_n(x) = 𝔼[V_{n+1}(X_{n+1}) | X_n = x] = ∫ V_{n+1}(y) P_{n+1}(x, dy) = ∫ 𝔼[Z_{τ_{n+1}} | X_{n+1} = y] P_{n+1}(x, dy) = 𝔼[Z_{τ_{n+1}} | X_n = x].</p>
+
+  <h4 style="color:#e06060; margin-top:1rem">Q.4 – Récurrence sur les τ_n</h4>
+  <p>On exerce en n si Z_n ≥ C_n(X_n) = 𝔼[Z_{τ_{n+1}} | X_n], sinon on continue jusqu'à τ_{n+1}.</p>
+  <div class="formula" style="margin:0.5rem 0">
+    <div class="eq">
+      τ_n = n · 1_{Z_n ≥ 𝔼[Z_{τ_{n+1}} | X_n]} + τ_{n+1} · 1_{Z_n < 𝔼[Z_{τ_{n+1}} | X_n]}
+    </div>
+  </div>
+  <p>V_0(x_0) = 𝔼[Z_{τ_0}] = max{φ_0(x_0), 𝔼[Z_{τ_1}]} car {X_0 = x_0} est déterministe.</p>
+
+  <h4 style="color:#e06060; margin-top:1rem">Q.5 – Algorithme Longstaff-Schwartz</h4>
+  <p><strong>Données :</strong> M trajectoires (X_n^{(j)})_{n,j}, bases (e_k)_k.</p>
+  <p><strong>Algorithme :</strong></p>
+  <ol style="margin-left:1.5rem; font-family:'Arial',sans-serif; font-size:14px; color:var(--text2); line-height:1.8;">
+    <li>τ^{(j)} = N, payoff^{(j)} = φ_N(X_N^{(j)}) pour tout j</li>
+    <li>Pour n = N-1, …, 1 : régresser (payoff^{(j)}) sur {e_k(X_n^{(j)})} → θ_n</li>
+    <li>Φ(X_n^{(j)}; θ_n) ≈ C_n(X_n^{(j)})</li>
+    <li>Si φ_n(X_n^{(j)}) ≥ Φ(X_n^{(j)}; θ_n) : τ^{(j)} = n, payoff^{(j)} = φ_n(X_n^{(j)})</li>
+    <li>V̂_0 = (1/M) Σ_j payoff^{(j)} avec IC 95%</li>
+  </ol>
+  <p style="margin-top:0.8rem"><strong>Erreurs :</strong> discrétisation (N fini), projection (base trop petite), Monte Carlo (M fini → σ/√M), biais (estimateur par défaut).</p>
+</div>
+
+<h3 id="s6-conso">6.3 Exercice 2 – Examen Mai 2025 (Épargne/Consommation)</h3>
+
+<div class="exam">
+  <div class="label">Exercice 2 – Corrigé détaillé</div>
+
+  <p><strong>Modèle :</strong> X_0 = x_0 > 0, X_{n+1} = X_n + Y_n X_n (1 - U_n), U_n ∈ [0,1], Y_n IID E[Y] = θ.</p>
+  <p><strong>Objectif :</strong> max 𝔼[Σ_{n=0}^{N-1} X_n U_n] (maximiser consommation totale).</p>
+
+  <h4 style="color:#e06060; margin-top:1rem">Q.1 – Modèle markovien contrôlé</h4>
+  <p>E = ℝ_+, C = [0,1]. Transition : X_{n+1} = X_n(1 + Y_n(1-U_n)) avec Y_n IID.</p>
+  <p>Récompense : r_n(x, u) = x·u. Terminal : g_N(x) = 0.</p>
+
+  <h4 style="color:#e06060; margin-top:1rem">Q.2 – Équations de DP</h4>
+  <div class="formula" style="margin:0.5rem 0">
+    <div class="eq">
+      J_N(x) = 0<br>
+      J_n(x) = sup_{u ∈ [0,1]} { x·u + 𝔼[J_{n+1}(X_n(1 + Y_n(1-u)))] }
+    </div>
+  </div>
+
+  <h4 style="color:#e06060; margin-top:1rem">Q.3 – Structure linéaire J_n(x) = ρ_n · x</h4>
+  <p>On suppose J_{n+1}(x) = ρ_{n+1}·x et on vérifie par récurrence :</p>
+  <div class="formula" style="margin:0.5rem 0">
+    <div class="eq">
+      J_n(x) = sup_{u ∈ [0,1]} { x·u + ρ_{n+1} · x · 𝔼[1 + Y_n(1-u)] }<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = x · sup_{u ∈ [0,1]} { u + ρ_{n+1}(1 + θ(1-u)) }<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = x · sup_{u ∈ [0,1]} { u(1 - ρ_{n+1}θ) + ρ_{n+1}(1+θ) }
+    </div>
+  </div>
+  <p>La fonction est linéaire en u. Donc :</p>
+  <ul style="margin-left:1.5rem; font-family:'Arial',sans-serif; font-size:14px; color:var(--text2); line-height:1.8;">
+    <li>Si 1 - ρ_{n+1}θ > 0 (i.e. ρ_{n+1} < 1/θ) → U_n* = 1, ρ_n = 1 + ρ_{n+1}θ</li>
+    <li>Si 1 - ρ_{n+1}θ < 0 (i.e. ρ_{n+1} > 1/θ) → U_n* = 0, ρ_n = ρ_{n+1}(1+θ)</li>
+    <li>Si ρ_{n+1} = 1/θ → indifférent, ρ_n = 1 + ρ_{n+1}θ = 2</li>
+  </ul>
+  <p><strong>Récurrence :</strong> ρ_N = 0 → ρ_{N-1} = 1 (U_{N-1}* = 1 car ρ_N = 0 < 1/θ) → ρ_{N-2} dépend de θ...</p>
+
+  <h4 style="color:#e06060; margin-top:1rem">Q.4 – Interprétation (seuil K)</h4>
+  <p>Il existe K unique tel que :</p>
+  <ul style="margin-left:1.5rem; font-family:'Arial',sans-serif; font-size:14px; color:var(--text2); line-height:1.8;">
+    <li>U_n* = 0 pour n < K : on n'investit rien, on laisse croître le capital</li>
+    <li>U_n* = 1 pour n ≥ K : on consomme tout le capital</li>
+  </ul>
+  <p><strong>Intuition :</strong> Si l'horizon est encore long (n < K), il vaut mieux investir pour faire fructifier le capital. Quand l'horizon est court (n ≥ K), on consomme tout immédiatement car il n'y a plus assez de temps pour que l'investissement soit rentable.</p>
+</div>
+
+<h3>6.4 Points Clés pour l'Examen</h3>
+
+<div class="warn">
+  ⚠️ <strong>Questions de cours typiques :</strong><br>
+  · Définir une chaîne de Markov et ses transitions<br>
+  · Énoncer et prouver le Théorème de Vérification<br>
+  · Énoncer et prouver le DPP<br>
+  · Dériver le Policy Gradient Theorem<br>
+  · Expliquer la différence Q-learning vs SARSA (on/off policy)<br>
+  · Démontrer que la soft-max résout l'entropie régularisée
+</div>
+
+<div class="tip">
+  💡 <strong>Méthode pour les exercices :</strong><br>
+  1. Identifier le type de problème (contrôle ? arrêt optimal ? RL ?)<br>
+  2. Écrire les équations de Bellman explicitement<br>
+  3. Chercher une structure (linéaire, exponentielle...) qui est stable par T_n<br>
+  4. Prouver par récurrence rétrograde<br>
+  5. Déduire la politique optimale en maximisant
+</div>
+
+<div style="margin-top:3rem; padding:2rem; background:var(--bg2); border:1px solid var(--border); border-radius:12px; text-align:center; font-family:'Arial',sans-serif;">
+  <p style="font-size:1.2rem; color:#fff; margin-bottom:0.5rem">Bon courage pour votre examen !</p>
+  <p style="color:var(--text2); font-size:14px">Maîtrisez les formules F1–F8, les preuves des théorèmes principaux, et l'algorithme de Longstaff-Schwartz.</p>
+</div>
+
+</main>
+
+<script>
+  // Active nav links
+  const sections = document.querySelectorAll('[id]');
+  const navLinks = document.querySelectorAll('nav a[href^="#"]');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+
+</body>
+</html>
